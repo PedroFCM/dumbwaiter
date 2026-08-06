@@ -1,0 +1,30 @@
+# Local gates, run on commit. CI runs the same tools, so a green commit here should
+# stay green there.
+#
+# Keep `rev` for the astral hooks aligned with the versions in the dev dependency group:
+# the hooks bring their own pinned binary, and a drift between the two shows up as the
+# formatter fighting itself or uv.lock churning on every commit.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.1
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.11.33
+    hooks:
+      # Regenerates uv.lock whenever pyproject.toml changes, so the committed lock is
+      # never stale relative to the declared dependencies.
+      - id: uv-lock
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
