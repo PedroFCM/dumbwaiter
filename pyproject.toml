@@ -1,0 +1,120 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dumbwaiter"
+version = "0.0.1"
+description = "Cost-aware LLM routing: send each request to the cheapest model that can answer it."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11"
+authors = [{ name = "Pedro Machado" }]
+keywords = ["llm", "routing", "bedrock", "anthropic", "cost", "classifier"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+# Lower bounds only, no upper caps: this is a library, and a cap here becomes a
+# resolver conflict in somebody else's application. uv.lock pins the exact versions we
+# develop and test against; it does not constrain anyone who installs the package.
+dependencies = [
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "numpy>=1.26",
+    "boto3>=1.34",       # Converse API
+    # The Anthropic SDK is pre-1.0 and makes no compatibility promises across minors,
+    # so an optimistically low floor would be a false claim. Revisit at M2 and drop it
+    # to the oldest release that actually carries the surface we call.
+    "anthropic>=0.120",
+]
+
+[project.optional-dependencies]
+local = ["fastembed>=0.4"]
+train = ["scikit-learn>=1.4"]
+
+[project.urls]
+Homepage = "https://github.com/pedromachado/dumbwaiter"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "respx>=0.21",
+    "ruff==0.16.1",       # exact: must match the rev in .pre-commit-config.yaml
+    "mypy>=1.11",
+    "types-pyyaml>=6.0",
+    "pre-commit>=4.0",
+    "pytest-cov>=7.1.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dumbwaiter"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q --strict-markers"
+
+[tool.coverage.run]
+source = ["src/dumbwaiter"]
+branch = true
+
+[tool.coverage.report]
+# 100 today, but providers land in M2 with import guards that are awkward to exercise.
+# 95 is the line worth defending; a drop below it means a real gap, not a technicality.
+fail_under = 95
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@overload",
+    "\\.\\.\\.",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",      # pycodestyle, pyflakes
+    "I",                # isort
+    "UP",               # pyupgrade
+    "B",                # bugbear
+    "C4",               # comprehensions
+    "SIM",              # simplify
+    "RUF",              # ruff-specific
+    "ANN",              # annotations
+    "PT",               # pytest style
+]
+ignore = ["ANN401"]     # Any is deliberate in provider passthrough
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN201", "ANN001"]
+
+[tool.mypy]
+# No `python_version` pin: it makes mypy parse third-party stubs (numpy's) under older
+# syntax rules and abort. The 3.11 floor is enforced by ruff's target-version on our own
+# code, and by running the test suite across versions in CI.
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src", "tests"]
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["yaml", "numpy.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# `-> None` on 45 test methods is noise, not safety. Everything else stays strict here.
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
