@@ -39,7 +39,9 @@ local = ["fastembed>=0.4"]
 train = ["scikit-learn>=1.4"]
 
 [project.urls]
-Homepage = "https://github.com/pedromachado/dumbwaiter"
+Homepage = "https://github.com/PedroFCM/dumbwaiter"
+Repository = "https://github.com/PedroFCM/dumbwaiter"
+Issues = "https://github.com/PedroFCM/dumbwaiter/issues"
 
 [dependency-groups]
 dev = [
