@@ -1,0 +1,54 @@
+# Example dumbwaiter configuration.
+#
+# Model ids below are illustrative. Confirm Bedrock ids and regional inference-profile
+# variants against `aws bedrock list-foundation-models` for your own account before use.
+
+default_route: simple
+min_confidence: 0.15
+
+classifier:
+  type: embedding
+  backend: bedrock
+  model: amazon.titan-embed-text-v2:0
+
+routes:
+  - name: simple
+    model: bedrock/amazon.nova-lite-v1:0
+    tier: 0
+    description: Short factual questions, translations, and light summarization.
+    examples:
+      - what time is it in Lisbon
+      - summarize this paragraph in two sentences
+      - translate this to European Portuguese
+      - what does this acronym stand for
+      - reformat this list as bullet points
+
+  - name: code
+    model: anthropic/claude-sonnet-5
+    tier: 1
+    description: Reading, writing, and debugging code.
+    examples:
+      - refactor this module to remove the duplicated validation
+      - why does this test fail intermittently
+      - write a pytest fixture that stubs the S3 client
+      - explain what this regex matches
+      - convert this script to async
+
+  - name: complex
+    model: anthropic/claude-opus-5
+    tier: 2
+    description: Open-ended reasoning, architecture, and multi-step analysis.
+    examples:
+      - design a distributed rate limiter and justify the tradeoffs
+      - prove this invariant holds for all inputs
+      - compare three approaches to this migration and recommend one
+      - analyze this incident timeline and identify the root cause
+      - plan a rollout strategy for this breaking API change
+
+policy:
+  escalate_on_error: true
+  escalate_on_refusal: true
+  max_escalations: 2
+  max_cost_per_request_usd: 0.05
+
+log_path: ./decisions.jsonl
