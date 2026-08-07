@@ -94,7 +94,7 @@ per-route scores, confidence, and a human-readable reason — without spending a
 ## Development
 
 ```bash
-uv sync --all-extras
+uv sync
 uv run pre-commit install     # once
 
 uv run pytest

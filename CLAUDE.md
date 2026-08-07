@@ -108,7 +108,7 @@ route or on none — a partial ordering is not one.
 ## Commands
 
 ```bash
-uv sync --all-extras
+uv sync
 uv run pre-commit install     # once
 
 uv run pytest

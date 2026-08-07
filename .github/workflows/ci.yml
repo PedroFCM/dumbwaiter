@@ -35,7 +35,7 @@ jobs:
       - name: Install
         # --locked fails rather than silently resolving something else, so CI runs the
         # exact dependency set the lockfile describes.
-        run: uv sync --all-extras --locked --python ${{ matrix.python-version }}
+        run: uv sync --locked --python ${{ matrix.python-version }}
 
       - name: Lint
         run: |

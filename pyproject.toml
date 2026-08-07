@@ -23,20 +23,20 @@ classifiers = [
 # Lower bounds only, no upper caps: this is a library, and a cap here becomes a
 # resolver conflict in somebody else's application. uv.lock pins the exact versions we
 # develop and test against; it does not constrain anyone who installs the package.
+#
+# Only what the code imports today. Declaring a dependency before the module that needs
+# it exists costs every installer download time and resolver surface for nothing, and it
+# hides which milestone actually introduced the requirement. Arriving later:
+#   httpx           M2, Ollama provider (core)
+#   boto3           M2, [bedrock] extra
+#   anthropic       M2, [anthropic] extra
+#   numpy           M3, centroid arithmetic (core)
+#   fastembed       M3, [local] extra
+#   scikit-learn    M5, [train] extra
 dependencies = [
     "pydantic>=2.7",
     "pyyaml>=6.0",
-    "numpy>=1.26",
-    "boto3>=1.34",       # Converse API
-    # The Anthropic SDK is pre-1.0 and makes no compatibility promises across minors,
-    # so an optimistically low floor would be a false claim. Revisit at M2 and drop it
-    # to the oldest release that actually carries the surface we call.
-    "anthropic>=0.120",
 ]
-
-[project.optional-dependencies]
-local = ["fastembed>=0.4"]
-train = ["scikit-learn>=1.4"]
 
 [project.urls]
 Homepage = "https://github.com/PedroFCM/dumbwaiter"
@@ -44,15 +44,14 @@ Repository = "https://github.com/PedroFCM/dumbwaiter"
 Issues = "https://github.com/PedroFCM/dumbwaiter/issues"
 
 [dependency-groups]
+# pytest-asyncio and respx arrive in M2 with the first async provider and its HTTP stubs.
 dev = [
     "pytest>=8.0",
-    "pytest-asyncio>=0.24",
-    "respx>=0.21",
+    "pytest-cov>=7.1.0",
     "ruff==0.16.1",       # exact: must match the rev in .pre-commit-config.yaml
     "mypy>=1.11",
-    "types-pyyaml>=6.0",
+    "types-pyyaml>=6.0",  # yaml stubs for mypy
     "pre-commit>=4.0",
-    "pytest-cov>=7.1.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -60,7 +59,6 @@ packages = ["src/dumbwaiter"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-asyncio_mode = "auto"
 addopts = "-q --strict-markers"
 
 [tool.coverage.run]
@@ -110,10 +108,6 @@ strict = true
 plugins = ["pydantic.mypy"]
 files = ["src", "tests"]
 warn_unreachable = true
-
-[[tool.mypy.overrides]]
-module = ["yaml", "numpy.*"]
-ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 # `-> None` on 45 test methods is noise, not safety. Everything else stays strict here.
