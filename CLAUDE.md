@@ -6,7 +6,15 @@ A Python library that decides **which model should answer a given request**, the
 it. Classify the prompt, pick the cheapest route that can handle it, call that provider.
 Tagline: *most requests don't need the smart one.*
 
-Providers: AWS Bedrock (Converse API, via boto3) and Anthropic (via the `anthropic` SDK).
+Providers: Ollama (local daemon, the default), AWS Bedrock (Converse API, via boto3), and
+Anthropic (via the `anthropic` SDK).
+
+**Local-first by default.** There is no AWS account, and Claude Pro grants no API access —
+the Anthropic API is separately billed. So the default install runs entirely on the
+machine: Ollama for completions, in-process ONNX embeddings for classification. Cloud
+providers live behind extras and are written and stub-tested but not executable yet. Keep
+it that way: anything that makes a cloud credential mandatory for the default path is a
+regression.
 
 ## Status
 
@@ -28,8 +36,8 @@ src/dumbwaiter/
   errors.py         one exception root
   router.py         (M3) composes classifier + providers
   classifiers/      (M3+) Classifier protocol and strategies
-  providers/        (M2) Provider protocol, bedrock, anthropic, registry
-  embeddings/       (M3) EmbeddingBackend protocol
+  providers/        (M2) Provider protocol, ollama, bedrock, anthropic, registry
+  embeddings/       (M3) EmbeddingBackend protocol, local (default), bedrock
   pricing.py        (M2) per-model prices with provenance
   observability.py  (M5) JSONL decision log
 ```
@@ -42,9 +50,17 @@ composes. Do not introduce an import from `providers/` or `classifiers/` back in
 
 **Never invent model ids, prices, or SDK versions.** Bedrock ids and their regional
 inference-profile variants must come from `aws bedrock list-foundation-models` against a
-real account, and prices from the provider's pricing page. An unpriced model reports
-`cost_usd = None` — never a plausible-looking guess. Every price row carries `source` and
-`checked_on` because partner (Bedrock) pricing diverges from first-party and both drift.
+real account, Ollama ids from `ollama list` on the machine, and prices from the provider's
+pricing page. An unpriced model reports `cost_usd = None` — never a plausible-looking
+guess. Every price row carries `source` and `checked_on` because partner (Bedrock) pricing
+diverges from first-party and both drift.
+
+**`None` and zero are different facts.** A local Ollama model costs a real `0`; an
+unrecognised cloud model costs `None` because we do not know. Do not collapse them.
+
+**Cloud SDKs are optional extras and must be imported lazily.** `boto3` and `anthropic`
+are not core dependencies. Importing either at module scope breaks the default install;
+import inside the provider and raise a message naming the extra to install.
 
 **Do not add a generic `temperature` (or `top_p`, `top_k`, `budget_tokens`) to `Request`.**
 Current Anthropic models reject all of them with a 400. The shared surface stays minimal —
