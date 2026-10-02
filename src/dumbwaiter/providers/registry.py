@@ -11,6 +11,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dumbwaiter.errors import ConfigError
 from dumbwaiter.providers.anthropic import AnthropicProvider
 from dumbwaiter.providers.base import Provider
+from dumbwaiter.providers.bedrock import BedrockProvider
 from dumbwaiter.providers.ollama import OllamaProvider
 
 ProviderFactory = Callable[[], Provider]
@@ -19,7 +20,11 @@ ProviderFactory = Callable[[], Provider]
 def default_factories() -> dict[str, ProviderFactory]:
     # Every built-in provider is listed, installed or not: a missing SDK should fail
     # with "install the extra", not with "unknown provider".
-    return {"anthropic": AnthropicProvider, "ollama": OllamaProvider}
+    return {
+        "anthropic": AnthropicProvider,
+        "bedrock": BedrockProvider,
+        "ollama": OllamaProvider,
+    }
 
 
 class ProviderRegistry:

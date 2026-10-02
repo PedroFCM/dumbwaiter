@@ -27,7 +27,6 @@ classifiers = [
 # Only what the code imports today. Declaring a dependency before the module that needs
 # it exists costs every installer download time and resolver surface for nothing, and it
 # hides which milestone actually introduced the requirement. Arriving later:
-#   boto3           M2, [bedrock] extra
 #   numpy           M3, centroid arithmetic (core)
 #   fastembed       M3, [local] extra
 #   scikit-learn    M5, [train] extra
@@ -45,6 +44,11 @@ Issues = "https://github.com/PedroFCM/dumbwaiter/issues"
 [project.optional-dependencies]
 anthropic = [
     "anthropic>=1.11.0",
+]
+# 1.34.116 is the release that added the Converse API (botocore CHANGELOG); client.close()
+# and converse() were both checked present there.
+bedrock = [
+    "boto3>=1.34.116",
 ]
 
 [dependency-groups]
@@ -123,3 +127,10 @@ warn_unreachable = true
 module = ["tests.*"]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+# boto3/botocore ship no type information. The Bedrock provider treats the client as
+# Any and validates shapes in tests (botocore's Stubber), so stubs would add a large dev
+# dependency to type a surface we do not lean on.
+module = ["boto3", "boto3.*", "botocore", "botocore.*"]
+ignore_missing_imports = true
