@@ -34,8 +34,9 @@ jobs:
 
       - name: Install
         # --locked fails rather than silently resolving something else, so CI runs the
-        # exact dependency set the lockfile describes.
-        run: uv sync --locked --python ${{ matrix.python-version }}
+        # exact dependency set the lockfile describes. --all-extras because the cloud
+        # providers' tests need their SDKs, which the default install leaves out.
+        run: uv sync --locked --all-extras --python ${{ matrix.python-version }}
 
       - name: Lint
         run: |

@@ -107,7 +107,7 @@ per-route scores, confidence, and a human-readable reason — without spending a
 ## Development
 
 ```bash
-uv sync
+uv sync --all-extras          # include the cloud SDKs; their tests need them
 uv run pre-commit install     # once
 
 uv run pytest

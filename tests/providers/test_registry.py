@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import subprocess
+import sys
+
 import pytest
 
 from dumbwaiter.errors import ConfigError
@@ -75,3 +78,17 @@ class TestClose:
         await registry.aclose()
         await registry.aclose()
         assert fake.closed == 1
+
+
+class TestDefaultInstall:
+    def test_importing_the_package_never_imports_a_cloud_sdk(self):
+        # A fresh interpreter, because this test session has already imported the SDKs.
+        # If this fails, the default install breaks for anyone without the extras.
+        code = (
+            "import sys, dumbwaiter, dumbwaiter.providers; "
+            "from dumbwaiter.providers import ProviderRegistry; ProviderRegistry().get('ollama'); "
+            "leaked = {'anthropic', 'boto3', 'botocore'} & set(sys.modules); "
+            "sys.exit(f'imported at module scope: {sorted(leaked)}' if leaked else 0)"
+        )
+        result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr

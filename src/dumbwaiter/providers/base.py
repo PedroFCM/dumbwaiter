@@ -10,6 +10,7 @@ anthropic exception escaping a provider is a bug.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
 from dumbwaiter.types import Completion, Request
@@ -27,3 +28,11 @@ class Provider(Protocol):
     async def aclose(self) -> None:
         """Release connections. Safe to call more than once."""
         ...
+
+
+def retry_after_seconds(headers: Mapping[str, str]) -> float | None:
+    """Seconds from a ``Retry-After`` header. The HTTP-date form is ignored, not guessed."""
+    try:
+        return float(headers["retry-after"])
+    except (KeyError, ValueError):
+        return None

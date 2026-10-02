@@ -28,7 +28,6 @@ classifiers = [
 # it exists costs every installer download time and resolver surface for nothing, and it
 # hides which milestone actually introduced the requirement. Arriving later:
 #   boto3           M2, [bedrock] extra
-#   anthropic       M2, [anthropic] extra
 #   numpy           M3, centroid arithmetic (core)
 #   fastembed       M3, [local] extra
 #   scikit-learn    M5, [train] extra
@@ -43,8 +42,14 @@ Homepage = "https://github.com/PedroFCM/dumbwaiter"
 Repository = "https://github.com/PedroFCM/dumbwaiter"
 Issues = "https://github.com/PedroFCM/dumbwaiter/issues"
 
+[project.optional-dependencies]
+anthropic = [
+    "anthropic>=1.11.0",
+]
+
 [dependency-groups]
-# respx stubs httpx (Ollama now, the Anthropic SDK later) so the suite never touches the network.
+# respx stubs httpx (the Ollama provider) so the suite never touches the network. The
+# Anthropic SDK runs on httpx2, which respx cannot see; its tests use httpx2.MockTransport.
 dev = [
     "pytest>=8.0",
     "pytest-cov>=7.1.0",

@@ -12,6 +12,7 @@ from typing import Any
 import httpx
 
 from dumbwaiter.errors import ProviderError, ProviderTimeout, RateLimited
+from dumbwaiter.providers.base import retry_after_seconds
 from dumbwaiter.types import Completion, Request, Usage
 
 DEFAULT_BASE_URL = "http://localhost:11434"
@@ -126,16 +127,8 @@ class OllamaProvider:
                 detail,
                 provider=self.name,
                 model=model_id,
-                retry_after=_retry_after(response.headers),
+                retry_after=retry_after_seconds(response.headers),
             )
         return ProviderError(
             f"HTTP {response.status_code}: {detail}", provider=self.name, model=model_id
         )
-
-
-def _retry_after(headers: httpx.Headers) -> float | None:
-    """Seconds from a ``Retry-After`` header. The HTTP-date form is ignored, not guessed."""
-    try:
-        return float(headers["retry-after"])
-    except (KeyError, ValueError):
-        return None

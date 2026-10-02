@@ -99,8 +99,11 @@ route or on none — a partial ordering is not one.
 
 ## Testing
 
-- **No network in the test suite, ever.** Stub boto3 with `botocore.stub.Stubber` and the
-  Anthropic SDK with `respx`. Live calls belong in `scripts/smoke.py`, run by hand.
+- **No network in the test suite, ever.** Stub boto3 with `botocore.stub.Stubber`, Ollama's
+  `httpx` calls with `respx`, and the Anthropic SDK with an `httpx2.MockTransport` passed as
+  its `http_client`. `anthropic` 1.x runs on `httpx2`, which `respx` does not patch, and
+  `httpx2.alias_httpx()` is for applications, never a library. Live calls belong in
+  `scripts/smoke.py`, run by hand.
 - Branch coverage gated at 95% (`uv run pytest --cov`). It is at 100% today.
 - Test behaviour that other code depends on, not structure. The error-hierarchy tests
   exist because escalation policy branches on those relationships.
@@ -108,7 +111,7 @@ route or on none — a partial ordering is not one.
 ## Commands
 
 ```bash
-uv sync
+uv sync --all-extras          # cloud SDKs too; their tests need them
 uv run pre-commit install     # once
 
 uv run pytest
