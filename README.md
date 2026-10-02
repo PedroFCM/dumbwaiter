@@ -4,7 +4,12 @@
 
 A dumbwaiter is the small lift that carries things between floors. This one carries LLM
 requests between model tiers: it classifies each request and sends it to the cheapest
-route that can actually answer it, across AWS Bedrock and Anthropic.
+route that can actually answer it.
+
+**Local-first.** The default install runs entirely on your machine: [Ollama](https://ollama.com)
+for completions and in-process ONNX embeddings for classification. No API key, no cloud
+account. AWS Bedrock and Anthropic are optional extras for when you want a cloud rung on
+the ladder.
 
 > **Status: early.** Milestone 1 of 6 is done — types, configuration, and validation.
 > There is no execution path yet. See [Roadmap](#roadmap).
@@ -36,25 +41,32 @@ min_confidence: 0.15
 
 classifier:
   type: embedding          # or: rules, llm_judge, cascade, trained
-  backend: bedrock
-  model: amazon.titan-embed-text-v2:0
+  backend: local           # in-process ONNX; no network
 
 routes:
   - name: simple
-    model: bedrock/amazon.nova-lite-v1:0
+    model: ollama/llama3.1:latest
     tier: 0
     examples: ["what time is it in Lisbon", "summarize this paragraph", "translate this"]
 
   - name: complex
-    model: anthropic/claude-opus-5
+    model: ollama/gemma4:latest
     tier: 1
-    examples: ["design a distributed rate limiter", "prove this invariant holds"]
+    examples: ["design a distributed rate limiter", "prove this invariant holds", "plan this migration"]
+
+  # Optional cloud rung, behind the [anthropic] extra:
+  # - name: frontier
+  #   model: anthropic/claude-sonnet-5
+  #   tier: 2
 
 policy:
   escalate_on_error: true
   escalate_on_refusal: true
-  max_cost_per_request_usd: 0.05
+  max_cost_per_request_usd: 0.05   # bites once a priced cloud route is on the ladder
 ```
+
+Model specs are `provider/model-id`. Ollama ids are whatever `ollama list` shows on your
+machine.
 
 Routes are **named**, not numbered — `code` and `vision` are as valid as `simple` and
 `complex`. The optional `tier` adds an ordering on top, which is what makes cost caps and
@@ -76,7 +88,8 @@ that understands them.
 
 **Prices carry provenance.** Every entry records its source and the date it was checked,
 because partner (Bedrock) pricing diverges from first-party pricing and both drift. An
-unpriced model reports `cost_usd = None` rather than a plausible-looking wrong number.
+unpriced model reports `cost_usd = None` rather than a plausible-looking wrong number. A
+local Ollama model costs a real `0`; that is a different fact from "unknown".
 
 **Routing is separable from execution.** `route()` returns a `Decision` — chosen route,
 per-route scores, confidence, and a human-readable reason — without spending anything.
@@ -85,8 +98,8 @@ per-route scores, confidence, and a human-readable reason — without spending a
 ## Roadmap
 
 - [x] **M1** — types, config, validation, strict typing and lint gates
-- [ ] **M2** — providers: Bedrock Converse and the Anthropic SDK, behind one protocol
-- [ ] **M3** — embedding classifier and the router itself
+- [ ] **M2** — providers behind one protocol: Ollama (default), plus Bedrock Converse and the Anthropic SDK as optional extras
+- [ ] **M3** — embedding classifier (local ONNX by default) and the router itself
 - [ ] **M4** — escalation policy, cost caps, streaming, rules / LLM-judge / cascade classifiers
 - [ ] **M5** — decision log, training a classifier from your own traffic, eval harness
 - [ ] **M6** — docs, results table, OpenWebUI pipe example

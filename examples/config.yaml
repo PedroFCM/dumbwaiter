@@ -1,19 +1,19 @@
 # Example dumbwaiter configuration.
 #
-# Model ids below are illustrative. Confirm Bedrock ids and regional inference-profile
-# variants against `aws bedrock list-foundation-models` for your own account before use.
+# Local-first: every route runs on Ollama and the classifier embeds in-process, so this
+# config needs no cloud credentials. The model ids are the ones `ollama list` showed on
+# the machine this was written on; swap in whatever you have pulled.
 
 default_route: simple
 min_confidence: 0.15
 
 classifier:
   type: embedding
-  backend: bedrock
-  model: amazon.titan-embed-text-v2:0
+  backend: local
 
 routes:
   - name: simple
-    model: bedrock/amazon.nova-lite-v1:0
+    model: ollama/llama3.1:latest
     tier: 0
     description: Short factual questions, translations, and light summarization.
     examples:
@@ -23,8 +23,9 @@ routes:
       - what does this acronym stand for
       - reformat this list as bullet points
 
+  # Several routes can share a rung: these differ in task, not in cost.
   - name: code
-    model: anthropic/claude-sonnet-5
+    model: ollama/gemma4:latest
     tier: 1
     description: Reading, writing, and debugging code.
     examples:
@@ -35,8 +36,8 @@ routes:
       - convert this script to async
 
   - name: complex
-    model: anthropic/claude-opus-5
-    tier: 2
+    model: ollama/gemma4:latest
+    tier: 1
     description: Open-ended reasoning, architecture, and multi-step analysis.
     examples:
       - design a distributed rate limiter and justify the tradeoffs
@@ -45,10 +46,19 @@ routes:
       - analyze this incident timeline and identify the root cause
       - plan a rollout strategy for this breaking API change
 
+  # A cloud rung is optional. Uncomment it, give it tier 2, and install the extra
+  # (`dumbwaiter[anthropic]`). Cloud routes need credentials; the local ones above do not.
+  #
+  # - name: frontier
+  #   model: anthropic/claude-sonnet-5
+  #   tier: 2
+  #   examples: [...]
+
 policy:
   escalate_on_error: true
   escalate_on_refusal: true
   max_escalations: 2
+  # Only bites once a priced cloud route is on the ladder; local models cost 0.
   max_cost_per_request_usd: 0.05
 
 log_path: ./decisions.jsonl
