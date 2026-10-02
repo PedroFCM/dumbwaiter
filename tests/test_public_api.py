@@ -33,7 +33,7 @@ class TestExports:
     def test_all_has_no_duplicates(self):
         assert len(dumbwaiter.__all__) == len(set(dumbwaiter.__all__))
 
-    @pytest.mark.parametrize("module_name", ["config", "errors", "types"])
+    @pytest.mark.parametrize("module_name", ["config", "errors", "pricing", "types"])
     def test_public_types_are_reexported_from_the_root(self, module_name: str):
         # Users should never need to import from a private submodule path.
         module = importlib.import_module(f"dumbwaiter.{module_name}")

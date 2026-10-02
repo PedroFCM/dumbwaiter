@@ -21,8 +21,8 @@ regression.
 | Milestone | State |
 |---|---|
 | M1 — types, config, validation, gates | done |
-| M2 — providers (Bedrock + Anthropic), pricing | next |
-| M3 — embedding classifier, `Router.route()` / `complete()` | |
+| M2 — providers (Ollama; Bedrock + Anthropic as extras), pricing | done |
+| M3 — embedding classifier, `Router.route()` / `complete()` | next |
 | M4 — escalation policy, cost caps, streaming, other classifiers | |
 | M5 — decision log, training from logs, eval harness | |
 | M6 — docs, results table, OpenWebUI pipe example | |
@@ -36,9 +36,9 @@ src/dumbwaiter/
   errors.py         one exception root
   router.py         (M3) composes classifier + providers
   classifiers/      (M3+) Classifier protocol and strategies
-  providers/        (M2) Provider protocol, ollama, bedrock, anthropic, registry
+  providers/        Provider protocol, ollama, bedrock, anthropic, registry
   embeddings/       (M3) EmbeddingBackend protocol, local (default), bedrock
-  pricing.py        (M2) per-model prices with provenance
+  pricing.py        per-model prices with provenance
   observability.py  (M5) JSONL decision log
 ```
 

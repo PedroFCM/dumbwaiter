@@ -11,8 +11,9 @@ for completions and in-process ONNX embeddings for classification. No API key, n
 account. AWS Bedrock and Anthropic are optional extras for when you want a cloud rung on
 the ladder.
 
-> **Status: early.** Milestone 1 of 6 is done — types, configuration, and validation.
-> There is no execution path yet. See [Roadmap](#roadmap).
+> **Status: early.** Milestones 1 and 2 of 6 are done: configuration, plus providers that
+> can call a model (Ollama runs today; Bedrock and Anthropic are written and stub-tested).
+> The router that picks between them is next. See [Roadmap](#roadmap).
 
 ## The idea
 
@@ -98,7 +99,7 @@ per-route scores, confidence, and a human-readable reason — without spending a
 ## Roadmap
 
 - [x] **M1** — types, config, validation, strict typing and lint gates
-- [ ] **M2** — providers behind one protocol: Ollama (default), plus Bedrock Converse and the Anthropic SDK as optional extras
+- [x] **M2** — providers behind one protocol: Ollama (default), plus Bedrock Converse and the Anthropic SDK as optional extras
 - [ ] **M3** — embedding classifier (local ONNX by default) and the router itself
 - [ ] **M4** — escalation policy, cost caps, streaming, rules / LLM-judge / cascade classifiers
 - [ ] **M5** — decision log, training a classifier from your own traffic, eval harness

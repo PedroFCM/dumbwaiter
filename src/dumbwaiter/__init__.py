@@ -19,6 +19,7 @@ from dumbwaiter.errors import (
     RateLimited,
     RoutingError,
 )
+from dumbwaiter.pricing import PriceTable
 from dumbwaiter.types import (
     Chunk,
     Completion,
@@ -48,6 +49,7 @@ __all__ = [
     "NoRouteError",
     "PolicyConfig",
     "Prediction",
+    "PriceTable",
     "ProviderError",
     "ProviderTimeout",
     "RateLimited",
