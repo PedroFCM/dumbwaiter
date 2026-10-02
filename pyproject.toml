@@ -27,13 +27,13 @@ classifiers = [
 # Only what the code imports today. Declaring a dependency before the module that needs
 # it exists costs every installer download time and resolver surface for nothing, and it
 # hides which milestone actually introduced the requirement. Arriving later:
-#   httpx           M2, Ollama provider (core)
 #   boto3           M2, [bedrock] extra
 #   anthropic       M2, [anthropic] extra
 #   numpy           M3, centroid arithmetic (core)
 #   fastembed       M3, [local] extra
 #   scikit-learn    M5, [train] extra
 dependencies = [
+    "httpx>=0.28.1",
     "pydantic>=2.7",
     "pyyaml>=6.0",
 ]
@@ -44,7 +44,7 @@ Repository = "https://github.com/PedroFCM/dumbwaiter"
 Issues = "https://github.com/PedroFCM/dumbwaiter/issues"
 
 [dependency-groups]
-# pytest-asyncio and respx arrive in M2 with the first async provider and its HTTP stubs.
+# respx stubs httpx (Ollama now, the Anthropic SDK later) so the suite never touches the network.
 dev = [
     "pytest>=8.0",
     "pytest-cov>=7.1.0",
@@ -52,6 +52,8 @@ dev = [
     "mypy>=1.11",
     "types-pyyaml>=6.0",  # yaml stubs for mypy
     "pre-commit>=4.0",
+    "pytest-asyncio>=1.4.0",
+    "respx>=0.23.1",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -60,6 +62,8 @@ packages = ["src/dumbwaiter"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q --strict-markers"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 source = ["src/dumbwaiter"]
@@ -106,7 +110,7 @@ ignore = ["ANN401"]     # Any is deliberate in provider passthrough
 # code, and by running the test suite across versions in CI.
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["src", "tests"]
+files = ["src", "tests", "scripts"]
 warn_unreachable = true
 
 [[tool.mypy.overrides]]

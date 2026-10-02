@@ -71,7 +71,21 @@ class Request:
     force_route: str | None = None
     """Bypass the classifier and use this route by name. Recorded on the Decision."""
     extra: Mapping[str, Any] = field(default_factory=dict)
-    """Provider-specific parameters, merged only by the provider that owns them."""
+    """Provider-specific parameters, keyed by provider name.
+
+    ``{"ollama": {"options": {"temperature": 0.2}}, "anthropic": {...}}``. A request does
+    not know in advance which route it will land on, so each provider reads only its own
+    key and ignores the rest.
+    """
+
+    def extra_for(self, provider: str) -> Mapping[str, Any]:
+        """The parameters addressed to one provider, or an empty mapping."""
+        value = self.extra.get(provider, {})
+        if not isinstance(value, Mapping):
+            raise TypeError(
+                f"Request.extra[{provider!r}] must be a mapping, got {type(value).__name__}"
+            )
+        return value
 
     def __post_init__(self) -> None:
         if not self.messages:
@@ -107,6 +121,23 @@ class Usage:
     @property
     def total_tokens(self) -> int:
         return self.input_tokens + self.output_tokens
+
+
+@dataclass(frozen=True, slots=True)
+class Completion:
+    """What a provider returns: the model's answer, before routing context is attached.
+
+    The router turns this into a :class:`Response` by adding the decision, latency, and
+    cost. Providers stay ignorant of all three.
+    """
+
+    text: str
+    usage: Usage
+    stop_reason: str | None = None
+    """Normalized where a provider has an obvious equivalent: ``end_turn``,
+    ``max_tokens``, ``stop_sequence``, ``tool_use``, ``refusal``. Anything else is passed
+    through verbatim rather than squeezed into a category it may not belong to."""
+    raw: Any = None
 
 
 @dataclass(frozen=True, slots=True)

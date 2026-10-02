@@ -1,7 +1,8 @@
 """dumbwaiter — cost-aware LLM routing.
 
 Most requests do not need the smart model. dumbwaiter classifies each request and
-sends it to the cheapest route that can answer it, across AWS Bedrock and Anthropic.
+sends it to the cheapest route that can answer it: local Ollama models by default, AWS
+Bedrock and Anthropic as optional extras.
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ from dumbwaiter.errors import (
 )
 from dumbwaiter.types import (
     Chunk,
+    Completion,
     Decision,
     Message,
     ModelRef,
@@ -37,6 +39,7 @@ __all__ = [
     "Chunk",
     "ClassifierConfig",
     "ClassifierError",
+    "Completion",
     "ConfigError",
     "Decision",
     "DumbwaiterError",

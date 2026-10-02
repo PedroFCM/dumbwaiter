@@ -110,3 +110,16 @@ class TestPrediction:
     def test_rejects_label_missing_from_scores(self):
         with pytest.raises(ValueError, match="not among scores"):
             Prediction(label="ghost", scores={"simple": 1.0}, confidence=0.5, classifier="x")
+
+
+class TestRequestExtra:
+    def test_returns_only_the_named_providers_parameters(self):
+        req = Request.user("hi", extra={"ollama": {"keep_alive": "5m"}, "anthropic": {"x": 1}})
+        assert req.extra_for("ollama") == {"keep_alive": "5m"}
+
+    def test_missing_provider_gets_an_empty_mapping(self):
+        assert Request.user("hi").extra_for("ollama") == {}
+
+    def test_non_mapping_value_is_rejected(self):
+        with pytest.raises(TypeError, match=r"extra\['ollama'\] must be a mapping"):
+            Request.user("hi", extra={"ollama": "nope"}).extra_for("ollama")
